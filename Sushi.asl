@@ -27,7 +27,7 @@ startup
     settings.Add("Parent",true,"Split at a time other timing than Sushi Soul");
     settings.Add("GateIn",true,"Split when go through the gate of \"The Great Sushi Ordeal\"","Parent");
     settings.Add("Skill",false,"Split when buy the \"Jet, Forward\"","Parent");
-    settings.Add("Chikuwa",false,"Split when ate all Chikuwas","Parent");
+    settings.Add("Chikuwa",true,"Split when ate all Chikuwas","Parent");
 
     settings.Add("ED",false,"Use Autosplitter in Credit Game(True) or other categories(False)");
     settings.Add("Every10",false,"Split every 10 pieces of Sushi","ED");
