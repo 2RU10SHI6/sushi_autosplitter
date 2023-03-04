@@ -20,6 +20,9 @@ state("Sushi-Win64-Shipping")
     int world_id : "Sushi-Win64-Shipping.exe", 0x04DF7480, 0x180, 0x1B0;
     int bamboo_rings : "Sushi-Win64-Shipping.exe", 0x048E4694;
     int layers : "Sushi-Win64-Shipping.exe", 0x04DF3B80, 0xE0, 0x270;
+    float velocity_x : "Sushi-Win64-Shipping.exe", 0x04DEAF30, 0x0, 0xA0, 0x130, 0x3E8, 0xD0;
+    float velocity_y : "Sushi-Win64-Shipping.exe", 0x04DEAF30, 0x0, 0xA0, 0x130, 0x3E8, 0xD4;
+    float velocity_z : "Sushi-Win64-Shipping.exe", 0x04DEAF30, 0x0, 0xA0, 0x130, 0x3E8, 0xD8;
 }
 
 startup
@@ -33,14 +36,64 @@ startup
     settings.Add("Every10",false,"Split every 10 pieces of Sushi","ED");
     settings.Add("LoadRemover",true,"Use LoadRemover");
 
+    settings.Add("SpeedDisplay",false,"Display Speed Checker on Text (please restart a game window after checked)");
+    settings.Add("SpeedUse",false,"Use Speed Checker (DO NOT USE WHILE RUNNING)","SpeedDisplay");
+
     vars.init_bamboo_rings = 0;
     vars.in_ending = false;
+}
+
+init
+{
+    vars.tcss = new List<System.Windows.Forms.UserControl>();
+    foreach (LiveSplit.UI.Components.IComponent component in timer.Layout.Components)
+    {
+        if (component.GetType().Name == "TextComponent")
+        {
+            vars.tc = component;
+            vars.tcss.Add(vars.tc.Settings);
+        }
+    }
 }
 
 update
 {
     //ちくわ開始時のbamboo_ringsを保存
     if (old.bamboo_rings == current.bamboo_rings + 6 && current.souls == 16) vars.init_bamboo_rings = current.bamboo_rings;
+
+    // speed checker
+    if (settings["SpeedDisplay"] == false) return;
+    if (vars.tcss.Count > 0)
+    {
+        vars.tcss[0].Text1 = "Speed";
+        if(settings["SpeedUse"]){
+            vars.speed_xyz = Math.Sqrt(Math.Pow(current.velocity_x, 2) + Math.Pow(current.velocity_y, 2) + Math.Pow(current.velocity_z, 2));
+            vars.tcss[0].Text2 = Math.Round(vars.speed_xyz).ToString();
+        } else {
+            vars.tcss[0].Text2 = "Not checked";
+        }
+
+        if (vars.tcss.Count > 1)
+        {
+            vars.tcss[1].Text1 = "Horizonal speed";
+            if(settings["SpeedUse"]){
+                vars.speed_xy = Math.Sqrt(Math.Pow(current.velocity_x, 2) + Math.Pow(current.velocity_y, 2));
+                vars.tcss[1].Text2 = Math.Round(vars.speed_xy).ToString();
+            } else {
+                vars.tcss[1].Text2 = "Not checked";
+            }
+
+            if (vars.tcss.Count > 2)
+            {
+                vars.tcss[2].Text1 = "Vertical speed";
+                if(settings["SpeedUse"]){
+                    vars.tcss[2].Text2 = Math.Round(current.velocity_z).ToString();
+                } else {
+                    vars.tcss[2].Text2 = "Not checked";
+                }
+            }
+        }
+    }
 }
 
 start
@@ -63,7 +116,7 @@ onStart
 
 split
 {
-    if (settings["GateIn"] && current.souls == 0 && current.garis == 36 && current.difficulty_id != 0 && current.world_id == 0 && current.bamboo_rings == 0 && old.layers == 1 && current.layers == 0) return true;
+    if (settings["GateIn"] && current.souls == 0 && current.garis == 36 && current.difficulty_id != 0 && current.world_id == 0 && current.bamboo_rings == 0 && old.layers == 1 && current.layers == 0 && old.velocity_y != 0) return true;
     if (settings["Skill"] && old.garis == current.garis + 600 && current.difficulty_id != 0) return true;
     if (settings["Chikuwa"] && current.souls == 16 && old.bamboo_rings == vars.init_bamboo_rings + 4 && current.bamboo_rings == vars.init_bamboo_rings + 5 && current.world_id == 12 && current.layers == 1) return true;
 
